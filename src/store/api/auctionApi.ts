@@ -20,6 +20,17 @@ export const auctionApi = baseApi.injectEndpoints({
           : [{ type: "Auction", id: "LIST" }],
     }),
 
+    getMyAuctions: builder.query<Auction[], void>({
+      query: () => "/api/auctions/my",
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Auction" as const, id })),
+              { type: "Auction", id: "MY_LIST" },
+            ]
+          : [{ type: "Auction", id: "MY_LIST" }],
+    }),
+
     getAuction: builder.query<Auction, string>({
       query: (id) => `/api/auctions/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Auction", id }],
@@ -66,6 +77,7 @@ export const auctionApi = baseApi.injectEndpoints({
 
 export const {
   useGetAuctionsQuery,
+  useGetMyAuctionsQuery,
   useGetAuctionQuery,
   useCreateAuctionMutation,
   useUpdateAuctionMutation,

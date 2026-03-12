@@ -29,7 +29,10 @@ export function useCountdown(endDate: string | null | undefined): CountdownResul
       };
     }
 
-    const diff = Math.max(0, Math.floor((new Date(endDate).getTime() - Date.now()) / 1000));
+    // Backend sends LocalDateTime without timezone (e.g. "2026-03-13T02:45:57").
+    // Appending "Z" forces JS to parse it as UTC instead of local time.
+    const normalized = endDate.endsWith("Z") || endDate.includes("+") ? endDate : endDate + "Z";
+    const diff = Math.max(0, Math.floor((new Date(normalized).getTime() - Date.now()) / 1000));
 
     if (diff === 0) {
       return {

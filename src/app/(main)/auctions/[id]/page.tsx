@@ -12,6 +12,7 @@ import {
   Trophy,
   Zap,
   CalendarClock,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { card, badge, typography, colors, button } from "@/lib/theme";
@@ -450,6 +451,22 @@ export default function AuctionDetailPage({
                 </div>
                 <span className="ml-auto w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               </div>
+            )}
+
+            {/* Edit link — only visible to the seller */}
+            {isSeller && (
+              <Link
+                href={`/auctions/${auction.id}/edit`}
+                className={cn(
+                  button.base,
+                  button.variants.outline,
+                  button.sizes.md,
+                  "w-full justify-center",
+                )}
+              >
+                <Pencil className="w-4 h-4" />
+                Edit auction
+              </Link>
             )}
           </div>
         </div>

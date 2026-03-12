@@ -10,6 +10,14 @@ export const bidApi = baseApi.injectEndpoints({
       ],
     }),
 
+    getMyBids: builder.query<Bid[], void>({
+      query: () => "/api/bids/my",
+      providesTags: (result) =>
+        result
+          ? [...result.map(({ id }) => ({ type: "Bid" as const, id })), { type: "Bid", id: "MY_LIST" }]
+          : [{ type: "Bid", id: "MY_LIST" }],
+    }),
+
     placeBid: builder.mutation<Bid, { auctionId: string; data: BidRequest }>({
       query: ({ auctionId, data }) => ({
         url: `/api/auctions/${auctionId}/bids`,
@@ -26,4 +34,4 @@ export const bidApi = baseApi.injectEndpoints({
   overrideExisting: false,
 });
 
-export const { useGetBidsQuery, usePlaceBidMutation } = bidApi;
+export const { useGetBidsQuery, useGetMyBidsQuery, usePlaceBidMutation } = bidApi;

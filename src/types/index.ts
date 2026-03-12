@@ -79,6 +79,11 @@ export interface Bid {
   userId: string;
   bidAmount: number;
   createdAt: string;
+  // Enriched fields — present only on GET /api/bids/my
+  auctionTitle?: string;
+  auctionStatus?: AuctionStatus;
+  auctionImageUrl?: string | null;
+  currentPrice?: number;
 }
 
 export interface BidRequest {

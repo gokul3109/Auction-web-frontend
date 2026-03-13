@@ -33,7 +33,8 @@ export interface GoogleAuthRequest {
 export interface UpdateProfileRequest {
   username?: string;
   fullName?: string;
-  password?: string;
+  currentPassword?: string;
+  newPassword?: string;
 }
 
 // ─── Auction ─────────────────────────────────────────────────────────────────

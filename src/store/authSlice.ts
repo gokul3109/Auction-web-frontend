@@ -7,6 +7,16 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
+// Decode JWT and check if it's expired (without a library)
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+};
+
 // Rehydrate from localStorage on app boot
 const loadAuthState = (): AuthState => {
   if (typeof window === "undefined") {
@@ -15,13 +25,16 @@ const loadAuthState = (): AuthState => {
   try {
     const token = localStorage.getItem("auction_token");
     const user = localStorage.getItem("auction_user");
-    if (token && user) {
+    if (token && user && !isTokenExpired(token)) {
       return {
         token,
         user: JSON.parse(user),
         isAuthenticated: true,
       };
     }
+    // Token is expired or missing — clear stale data
+    localStorage.removeItem("auction_token");
+    localStorage.removeItem("auction_user");
   } catch {
     // ignore
   }

@@ -53,6 +53,7 @@ export interface Auction {
   startDate: string | null;
   endDate: string | null;
   imageUrl: string | null;
+  isWatchlisted: boolean;
   createdAt: string;
   updatedAt: string;
 }

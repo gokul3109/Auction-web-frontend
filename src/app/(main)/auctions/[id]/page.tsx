@@ -23,6 +23,7 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { useAuctionEvents } from "@/hooks/useAuctionEvents";
 import BidHistory from "@/components/auction/BidHistory";
 import PlaceBidForm from "@/components/auction/PlaceBidForm";
+import WatchlistToggle from "@/components/auction/WatchlistToggle";
 
 // ─── Gradient fallbacks (full static strings for Tailwind scanner) ─────────────
 
@@ -219,7 +220,14 @@ export default function AuctionDetailPage({
 
             {/* Title + description */}
             <div className="space-y-3">
-              <h1 className={typography.h2}>{auction.title}</h1>
+              <div className="flex items-start justify-between gap-3">
+                <h1 className={typography.h2}>{auction.title}</h1>
+                <WatchlistToggle
+                  auctionId={auction.id}
+                  isWatchlisted={auction.isWatchlisted}
+                  className="w-9 h-9 shrink-0"
+                />
+              </div>
               {auction.description && (
                 <p className={cn(typography.bodyLg, "leading-relaxed")}>
                   {auction.description}

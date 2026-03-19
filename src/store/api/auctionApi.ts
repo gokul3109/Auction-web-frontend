@@ -71,6 +71,43 @@ export const auctionApi = baseApi.injectEndpoints({
     getAuctionWinner: builder.query<AuctionWinnerInfo, string>({
       query: (id) => `/api/auctions/${id}/winner`,
     }),
+
+    getWatchlist: builder.query<Auction[], void>({
+      query: () => "/api/watchlist",
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Auction" as const, id })),
+              { type: "Watchlist", id: "LIST" },
+            ]
+          : [{ type: "Watchlist", id: "LIST" }],
+    }),
+
+    addToWatchlist: builder.mutation<{ message: string }, string>({
+      query: (auctionId) => ({
+        url: `/api/watchlist/${auctionId}`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Watchlist", id: "LIST" },
+        { type: "Auction", id },
+        { type: "Auction", id: "LIST" },
+        { type: "Auction", id: "MY_LIST" },
+      ],
+    }),
+
+    removeFromWatchlist: builder.mutation<void, string>({
+      query: (auctionId) => ({
+        url: `/api/watchlist/${auctionId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Watchlist", id: "LIST" },
+        { type: "Auction", id },
+        { type: "Auction", id: "LIST" },
+        { type: "Auction", id: "MY_LIST" },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -83,4 +120,7 @@ export const {
   useUpdateAuctionMutation,
   useDeleteAuctionMutation,
   useGetAuctionWinnerQuery,
+  useGetWatchlistQuery,
+  useAddToWatchlistMutation,
+  useRemoveFromWatchlistMutation,
 } = auctionApi;

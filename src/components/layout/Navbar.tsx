@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   TrendingUp,
   Zap,
+  Heart,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/cn";
@@ -25,6 +26,7 @@ const NAV_LINKS = [
   { href: "/",            label: "Auctions",    icon: <Gavel          className="w-4 h-4" />, authOnly: false },
   { href: "/my-auctions", label: "My Listings", icon: <LayoutDashboard className="w-4 h-4" />, authOnly: true  },
   { href: "/my-bids",    label: "My Bids",     icon: <TrendingUp     className="w-4 h-4" />, authOnly: true  },
+  { href: "/watchlist",  label: "Watchlist",   icon: <Heart          className="w-4 h-4" />, authOnly: true  },
 ];
 
 // ─── Shared class strings ─────────────────────────────────────────────────────
@@ -178,6 +180,9 @@ export default function Navbar() {
                           <DropdownLink href="/my-bids" icon={<TrendingUp className="w-4 h-4" />} onClick={() => setDropdownOpen(false)}>
                             My Bids
                           </DropdownLink>
+                          <DropdownLink href="/watchlist" icon={<Heart className="w-4 h-4" />} onClick={() => setDropdownOpen(false)}>
+                            Watchlist
+                          </DropdownLink>
                           <DropdownLink href="/auctions/create" icon={<Plus className="w-4 h-4" />} onClick={() => setDropdownOpen(false)}>
                             List an Item
                           </DropdownLink>
@@ -303,6 +308,9 @@ export default function Navbar() {
                 </Link>
                 <Link href="/profile" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_DEFAULT)}>
                   <User className="w-4 h-4" /> Profile
+                </Link>
+                <Link href="/watchlist" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_DEFAULT)}>
+                  <Heart className="w-4 h-4" /> Watchlist
                 </Link>
                 <button
                   onClick={logout}

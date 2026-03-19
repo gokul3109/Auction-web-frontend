@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { card, badge, typography, colors } from "@/lib/theme";
 import type { Auction } from "@/types";
 import { useCountdown } from "@/hooks/useCountdown";
+import WatchlistToggle from "@/components/auction/WatchlistToggle";
 
 interface AuctionCardProps {
   auction: Auction;
@@ -118,17 +119,26 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
           )}
         </div>
 
-        {/* Category badge — top-right */}
-        {auction.category && (
-          <div className="absolute top-3 right-3">
+        {/* Category + watchlist — top-right */}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {auction.category && (
             <span className={cn(
               badge.base, badge.sizes.sm,
               "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 backdrop-blur-sm shadow-sm",
             )}>
               {auction.category}
             </span>
+          )}
+          <WatchlistToggle
+            auctionId={auction.id}
+            isWatchlisted={auction.isWatchlisted}
+            className="w-7.5 h-7.5"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          />
           </div>
-        )}
 
         {/* Price pill — bottom-left over image */}
         <div className="absolute bottom-3 left-3">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Gavel,
   Menu,
@@ -15,10 +15,17 @@ import {
   TrendingUp,
   Zap,
   Heart,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/cn";
 import { button, colors, divider } from "@/lib/theme";
+import {
+  useGetNotificationsQuery,
+  useGetUnreadCountQuery,
+  useMarkReadMutation,
+  useMarkAllReadMutation,
+} from "@/store/api/notificationApi";
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -42,10 +49,26 @@ const MOBILE_ITEM_DEFAULT = "text-slate-700 dark:text-slate-300 hover:bg-slate-1
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLDivElement>(null);
+
+  const { data: notifications = [] } = useGetNotificationsQuery(undefined, {
+    skip: !isAuthenticated,
+    pollingInterval: 30000,
+  });
+  const { data: unreadData } = useGetUnreadCountQuery(undefined, {
+    skip: !isAuthenticated,
+    pollingInterval: 30000,
+  });
+  const [markRead] = useMarkReadMutation();
+  const [markAllRead] = useMarkAllReadMutation();
+
+  const unreadCount = unreadData?.count ?? 0;
 
   // Scroll effect
   useEffect(() => {
@@ -54,11 +77,14 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+        setBellOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -127,6 +153,77 @@ export default function Navbar() {
                     <Plus className="w-4 h-4" />
                     List Item
                   </Link>
+
+                  {/* Notification bell */}
+                  <div className="relative" ref={bellRef}>
+                    <button
+                      onClick={() => setBellOpen(!bellOpen)}
+                      className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      aria-label="Notifications"
+                    >
+                      <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-4.5 h-4.5 px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </button>
+
+                    {bellOpen && (
+                      <div className={cn(
+                        "absolute right-0 mt-2 w-80 rounded-2xl overflow-hidden",
+                        colors.bg.surface,
+                        "shadow-xl shadow-slate-900/10 dark:shadow-black/30",
+                        "border", colors.border.base,
+                      )}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                          <span className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</span>
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={() => markAllRead()}
+                              className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                            >
+                              Mark all read
+                            </button>
+                          )}
+                        </div>
+
+                        {/* List */}
+                        <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                          {notifications.length === 0 ? (
+                            <div className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
+                              No notifications yet
+                            </div>
+                          ) : (
+                            notifications.slice(0, 10).map((n) => (
+                              <button
+                                key={n.id}
+                                onClick={() => {
+                                  if (!n.read) markRead(n.id);
+                                  setBellOpen(false);
+                                  if (n.auctionId) router.push(`/auctions/${n.auctionId}`);
+                                }}
+                                className={cn(
+                                  "w-full text-left px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60",
+                                  !n.read && "bg-indigo-50/50 dark:bg-indigo-950/30",
+                                )}
+                              >
+                                <div className="flex items-start gap-2">
+                                  {!n.read && <span className="mt-1.5 w-2 h-2 rounded-full bg-indigo-500 shrink-0" />}
+                                  <div className={cn(!n.read ? "" : "pl-4")}>
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">{n.title}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{n.message}</p>
+                                    <p className="text-[11px] text-slate-400 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Avatar dropdown */}
                   <div className="relative" ref={dropdownRef}>
@@ -311,6 +408,17 @@ export default function Navbar() {
                 </Link>
                 <Link href="/watchlist" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_DEFAULT)}>
                   <Heart className="w-4 h-4" /> Watchlist
+                </Link>
+                <Link href="/notifications" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_DEFAULT)}>
+                  <span className="relative">
+                    <Bell className="w-4 h-4" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </span>
+                  Notifications {unreadCount > 0 && `(${unreadCount})`}
                 </Link>
                 <button
                   onClick={logout}

@@ -30,7 +30,7 @@ export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithAutoLogout,
   // Tag types for cache invalidation
-  tagTypes: ["Auction", "Bid", "User", "Watchlist"],
+  tagTypes: ["Auction", "Bid", "User", "Watchlist", "Notification"],
   // Endpoints injected from individual slice files
   endpoints: () => ({}),
 });

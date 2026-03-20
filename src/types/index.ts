@@ -92,6 +92,26 @@ export interface BidRequest {
   bidAmount: number;
 }
 
+// ─── Notification ─────────────────────────────────────────────────────────────
+
+export type NotificationType =
+  | "OUTBID"
+  | "BID_RECEIVED"
+  | "AUCTION_WON"
+  | "AUCTION_SOLD"
+  | "AUCTION_NO_BIDS";
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  auctionId: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
 // ─── SSE Events ───────────────────────────────────────────────────────────────
 
 export interface BidEventMessage {

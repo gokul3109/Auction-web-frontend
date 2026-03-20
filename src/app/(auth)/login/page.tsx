@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useLoginMutation, useGoogleLoginMutation } from "../../../store/api/authApi";
+import { toast } from "../../../lib/toast";
 import { useAppDispatch } from "../../../hooks/useAppStore";
 import { setCredentials } from "../../../store/authSlice";
 
@@ -16,7 +17,6 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const [serverError, setServerError] = useState("");
 
   const [login, { isLoading }] = useLoginMutation();
   const [googleLogin, { isLoading: isGoogleLoading }] = useGoogleLoginMutation();
@@ -32,7 +32,6 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setServerError("");
     if (!validate()) return;
 
     try {
@@ -41,19 +40,18 @@ export default function LoginPage() {
       router.push("/");
     } catch (err: unknown) {
       const error = err as { data?: { error?: string } };
-      setServerError(error?.data?.error || "Invalid email or password");
+      toast.error(error?.data?.error || "Invalid email or password");
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
     if (!credentialResponse.credential) return;
-    setServerError("");
     try {
       const user = await googleLogin({ googleToken: credentialResponse.credential }).unwrap();
       dispatch(setCredentials(user));
       router.push("/");
     } catch {
-      setServerError("Google sign-in failed. Please try again.");
+      toast.error("Google sign-in failed. Please try again.");
     }
   };
 
@@ -68,13 +66,6 @@ export default function LoginPage() {
           Sign in to continue bidding
         </p>
       </div>
-
-      {/* Server error */}
-      {serverError && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm dark:bg-red-950 dark:border-red-800 dark:text-red-400">
-          {serverError}
-        </div>
-      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -178,7 +169,7 @@ export default function LoginPage() {
       <div className={`flex justify-center transition-opacity ${isGoogleLoading ? "opacity-50 pointer-events-none" : ""}`}>
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
-          onError={() => setServerError("Google sign-in failed. Please try again.")}
+          onError={() => toast.error("Google sign-in failed. Please try again.")}
           theme="outline"
           size="large"
           width="100%"

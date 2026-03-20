@@ -9,11 +9,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCreateAuctionMutation } from "@/store/api/auctionApi";
 import AuctionForm from "@/components/auction/AuctionForm";
 import type { AuctionRequest } from "@/types";
+import { toast } from "@/lib/toast";
 
 export default function CreateAuctionPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const [createAuction, { isLoading, error }] = useCreateAuctionMutation();
+  const [createAuction, { isLoading }] = useCreateAuctionMutation();
 
   // ── Unauthenticated ────────────────────────────────────────────────────────
 
@@ -43,15 +44,11 @@ export default function CreateAuctionPage() {
     try {
       const result = await createAuction(data).unwrap();
       router.push(`/auctions/${result.id}`);
-    } catch {
-      // error is captured in RTK Query `error` state — shown in banner above
+    } catch (err: unknown) {
+      const e = err as { data?: { error?: string; message?: string } };
+      toast.error(e?.data?.error ?? e?.data?.message ?? "Failed to create auction. Please try again.");
     }
   };
-
-  const apiError = error as
-    | { data?: { error?: string; message?: string } }
-    | undefined;
-  const errorMsg = apiError?.data?.error ?? apiError?.data?.message;
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -82,13 +79,6 @@ export default function CreateAuctionPage() {
           </p>
         </div>
       </div>
-
-      {/* API error banner */}
-      {errorMsg && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
-          {errorMsg}
-        </div>
-      )}
 
       {/* Form */}
       <div className={cn(card.base, "p-6 sm:p-8")}>

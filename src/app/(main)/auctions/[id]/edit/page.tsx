@@ -14,6 +14,7 @@ import {
 } from "@/store/api/auctionApi";
 import AuctionForm from "@/components/auction/AuctionForm";
 import type { AuctionRequest } from "@/types";
+import { toast } from "@/lib/toast";
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -39,9 +40,9 @@ export default function EditAuctionPage({
   const { user, isAuthenticated } = useAuth();
 
   const { data: auction, isLoading, isError } = useGetAuctionQuery(id);
-  const [updateAuction, { isLoading: isUpdating, error: updateError }] =
+  const [updateAuction, { isLoading: isUpdating }] =
     useUpdateAuctionMutation();
-  const [deleteAuction, { isLoading: isDeleting, error: deleteError }] = useDeleteAuctionMutation();
+  const [deleteAuction, { isLoading: isDeleting }] = useDeleteAuctionMutation();
 
   // ── Loading ────────────────────────────────────────────────────────────────
 
@@ -87,8 +88,9 @@ export default function EditAuctionPage({
     try {
       await updateAuction({ id, data }).unwrap();
       router.push(`/auctions/${id}`);
-    } catch {
-      // error captured in RTK Query `updateError` state — shown in banner
+    } catch (err: unknown) {
+      const e = err as { data?: { error?: string; message?: string } };
+      toast.error(e?.data?.error ?? e?.data?.message ?? "Failed to update auction. Please try again.");
     }
   };
 
@@ -96,22 +98,11 @@ export default function EditAuctionPage({
     try {
       await deleteAuction(id).unwrap();
       router.push("/");
-    } catch {
-      // error captured in RTK Query `deleteError` state — shown in banner
+    } catch (err: unknown) {
+      const e = err as { data?: { error?: string; message?: string } };
+      toast.error(e?.data?.error ?? e?.data?.message ?? "Failed to delete auction. Please try again.");
     }
   };
-
-  const apiError = updateError as
-    | { data?: { error?: string; message?: string } }
-    | undefined;
-  const deleteApiError = deleteError as
-    | { data?: { error?: string; message?: string } }
-    | undefined;
-  const errorMsg =
-    apiError?.data?.error ??
-    apiError?.data?.message ??
-    deleteApiError?.data?.error ??
-    deleteApiError?.data?.message;
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -144,13 +135,6 @@ export default function EditAuctionPage({
           </p>
         </div>
       </div>
-
-      {/* API error banner */}
-      {errorMsg && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
-          {errorMsg}
-        </div>
-      )}
 
       {/* Form */}
       <div className={cn(card.base, "p-6 sm:p-8")}>

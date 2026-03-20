@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import StoreProvider from "../lib/StoreProvider";
 import GoogleProvider from "../lib/GoogleProvider";
+import Toaster from "../components/ui/Toaster";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +33,7 @@ export default function RootLayout({
         <StoreProvider>
           <GoogleProvider>
             {children}
+            <Toaster />
           </GoogleProvider>
         </StoreProvider>
       </body>

@@ -6,6 +6,7 @@ import { Gavel, Loader2, TrendingUp, Lock } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { button, colors } from "@/lib/theme";
 import { usePlaceBidMutation } from "@/store/api/bidApi";
+import { toast } from "@/lib/toast";
 
 interface PlaceBidFormProps {
   auctionId: string;
@@ -26,7 +27,6 @@ export default function PlaceBidForm({
 }: PlaceBidFormProps) {
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   const [placeBid, { isLoading }] = usePlaceBidMutation();
 
@@ -42,7 +42,6 @@ export default function PlaceBidForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccess(false);
     const validationError = validate(amount);
     if (validationError) {
       setError(validationError);
@@ -56,11 +55,10 @@ export default function PlaceBidForm({
         data: { bidAmount: parseFloat(amount) },
       }).unwrap();
       setAmount("");
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      toast.success("Bid placed successfully!");
     } catch (err: unknown) {
       const e = err as { data?: { error?: string; message?: string } };
-      setError(
+      toast.error(
         e?.data?.error ||
           e?.data?.message ||
           "Failed to place bid. Please try again.",
@@ -155,7 +153,6 @@ export default function PlaceBidForm({
           onChange={(e) => {
             setAmount(e.target.value);
             if (error) setError("");
-            if (success) setSuccess(false);
           }}
           placeholder={minBid.toFixed(2)}
           step="0.01"
@@ -174,18 +171,11 @@ export default function PlaceBidForm({
         />
       </div>
 
-      {/* Error */}
+      {/* Inline validation error */}
       {error && (
         <p className="text-xs text-red-500 flex items-start gap-1">
           <span className="shrink-0 mt-0.5">⚠</span>
           {error}
-        </p>
-      )}
-
-      {/* Success */}
-      {success && (
-        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-          ✓ Bid placed successfully!
         </p>
       )}
 
